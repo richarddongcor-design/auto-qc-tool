@@ -1,7 +1,28 @@
 [project]
 name = "auto-qc"
 version = "0.1.0"
-description = "Add your description here"
+description = "外呼通话文本质检 CLI"
 readme = "README.md"
-requires-python = ">=3.14"
-dependencies = []
+requires-python = ">=3.13"
+dependencies = [
+    "anthropic>=0.60.0",
+    "openpyxl==3.1.5",
+
+    "json-repair==0.59.10",
+]
+
+[project.scripts]
+auto-qc = "auto_qc.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
