@@ -145,6 +145,7 @@ def compare_results(
             "mismatches": mismatches,
             "tp": stats["tp"], "fp": stats["fp"],
             "fn": stats["fn"], "tn": stats["tn"],
+            "adjudicated": False,
         }
 
     return CrossValidationResult.compute(total_mismatches, total_judgments, per_rule)
