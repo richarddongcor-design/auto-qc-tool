@@ -1,4 +1,6 @@
 """交叉验证引擎——固定样本分层抽样、规则级 Cohen's Kappa 一致性"""
+import copy
+import json
 import random
 from auto_qc.domain.schemas import CrossValidationResult
 
@@ -146,3 +148,149 @@ def compare_results(
         }
 
     return CrossValidationResult.compute(total_mismatches, total_judgments, per_rule)
+
+
+def _find_disputes(
+    original: list[dict],
+    recheck: list[dict],
+    rule_id: str,
+) -> list[str]:
+    """找出指定规则下 original 和 recheck 判断不一致的对话 ID 列表。"""
+    def _get_hit(entries: list[dict]) -> dict[str, bool]:
+        result = {}
+        for e in entries:
+            result[e["id"]] = rule_id in {v["rule_id"] for v in e.get("violations", [])}
+        return result
+
+    orig_hit = _get_hit(original)
+    rech_hit = _get_hit(recheck)
+    disputes = []
+    for cid in orig_hit:
+        if cid in rech_hit and orig_hit[cid] != rech_hit[cid]:
+            disputes.append(cid)
+    return disputes
+
+
+def _build_adjudication_prompt(
+    disputes: list[str],
+    rule_id: str,
+    original: list[dict],
+    recheck: list[dict],
+    conv_text_map: dict[str, str],
+) -> str:
+    """构造裁决 prompt。对每条争议对话，列出前两次判断的结论和对话内容。"""
+    rule_name = rule_id
+    for e in original:
+        for v in e.get("violations", []):
+            if v["rule_id"] == rule_id:
+                rule_name = v.get("rule_name", rule_id)
+                break
+
+    def _judgment(entries: list[dict], cid: str) -> str:
+        for e in entries:
+            if e["id"] == cid:
+                if rule_id in {v["rule_id"] for v in e.get("violations", [])}:
+                    return "违规"
+                return "通过"
+        return "通过"
+
+    lines = [
+        "你是一名质检裁决员。请对比以下对话的前两次质检判断，做出最终裁决。",
+        "",
+        f"## 争议规则: {rule_id} ({rule_name})",
+        "",
+        "对每条对话，请判断：该对话是否违反上述规则？",
+        "",
+    ]
+    for i, cid in enumerate(disputes, 1):
+        conv_text = conv_text_map.get(cid, "[对话内容不可用]")
+        lines.extend([
+            f"### 对话 {i}: {cid}",
+            "",
+            conv_text,
+            "",
+            f"第一次判断（原始质检）: {_judgment(original, cid)}",
+            f"第二次判断（交叉复检）: {_judgment(recheck, cid)}",
+            "",
+        ])
+
+    lines.extend([
+        "## 输出格式",
+        "",
+        "```json",
+        "{",
+        '  "rulings": [',
+        '    {"id": "对话ID", "violates": true, "reasoning": "简短推理"},',
+        "    ...",
+        "  ]",
+        "}",
+        "```",
+    ])
+    return "\n".join(lines)
+
+
+async def adjudicate(
+    original: list[dict],
+    recheck: list[dict],
+    qc_results: list[dict],
+    rule_id: str,
+    call_llm_fn,
+    conv_text_map: dict[str, str],
+) -> tuple[list[dict], float]:
+    """对指定规则的争议对话执行第三次裁决。三局两胜，取 majority 作为最终结果。"""
+    disputes = _find_disputes(original, recheck, rule_id)
+    if not disputes:
+        return qc_results, 0.0
+
+    prompt = _build_adjudication_prompt(disputes, rule_id, original, recheck, conv_text_map)
+    raw = await call_llm_fn(prompt)
+    data = json.loads(raw)
+    rulings = {r["id"]: r["violates"] for r in data.get("rulings", [])}
+
+    def _check(entries: list[dict], cid: str) -> bool:
+        for e in entries:
+            if e["id"] == cid:
+                return rule_id in {v["rule_id"] for v in e.get("violations", [])}
+        return False
+
+    # 收集违规样本的字段信息
+    violated_samples = {}
+    for e in original:
+        for v in e.get("violations", []):
+            if v["rule_id"] == rule_id:
+                violated_samples[e["id"]] = v
+
+    result = copy.deepcopy(qc_results)
+    result_map = {r["id"]: r for r in result}
+
+    for cid in disputes:
+        orig_v = _check(original, cid)
+        rech_v = _check(recheck, cid)
+        adj_v = rulings.get(cid, orig_v)
+        votes = [orig_v, rech_v, adj_v]
+        majority = sum(votes) >= 2
+
+        conv = result_map.get(cid)
+        if conv is None:
+            continue
+
+        existing = [v for v in conv["violations"] if v["rule_id"] != rule_id]
+        if majority:
+            if cid in violated_samples:
+                existing.append(dict(violated_samples[cid]))
+            else:
+                existing.append({
+                    "rule_id": rule_id,
+                    "rule_name": rule_id,
+                    "severity": "中",
+                    "evidence": "[裁决补充]",
+                    "suggestion": "",
+                })
+            conv["violations"] = existing
+            conv["status"] = "violation"
+        else:
+            conv["violations"] = existing
+            if not existing:
+                conv["status"] = "pass"
+
+    return result, 0.0
