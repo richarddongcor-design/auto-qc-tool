@@ -1,6 +1,6 @@
 import json
 import pytest
-from auto_qc.domain.prompts import build_qc_prompt, build_attribution_prompt
+from auto_qc.domain.prompts import build_qc_prompt
 from auto_qc.domain.schemas import Batch, Conversation, Rule, RulePackage
 
 
@@ -17,13 +17,4 @@ def test_build_qc_prompt():
     assert "R01" in prompt
     assert "规则一" in prompt
     assert "2024-01-01" in prompt
-    assert '"id": "1"' in prompt
-
-
-def test_build_attribution_prompt():
-    batch = Batch(batch_id=1, conversations=[
-        Conversation(id="1", time="", intent="F", conversation="hi"),
-    ])
-    prompt = build_attribution_prompt(batch)
-    assert "归因" in prompt or "A01" in prompt
     assert '"id": "1"' in prompt

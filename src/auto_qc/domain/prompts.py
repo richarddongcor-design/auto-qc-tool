@@ -43,27 +43,3 @@ def build_qc_prompt(batch: Batch, rule_package: RulePackage) -> str:
     prompt = prompt.replace("{{BATCH_ID}}", str(batch.batch_id))
 
     return prompt
-
-
-def build_attribution_prompt(batch: Batch) -> str:
-    """
-    组装归因分析 Worker prompt。
-    模板: templates/attribution-prompt.md
-    规则: templates/attribution-rules.md
-    """
-    template = _load_template("attribution-prompt.md")
-    attribution_rules = _load_template("attribution-rules.md")
-
-    conversations_json = json.dumps(
-        [{"id": c.id, "time": c.time, "intent": c.intent, "conversation": c.conversation}
-         for c in batch.conversations],
-        ensure_ascii=False,
-        indent=2,
-    )
-
-    prompt = template.replace("{{ATTRIBUTION_RULES}}", attribution_rules)
-    prompt = prompt.replace("{{BATCH_SIZE}}", str(batch.size))
-    prompt = prompt.replace("{{CONVERSATIONS}}", conversations_json)
-    prompt = prompt.replace("{{BATCH_ID}}", str(batch.batch_id))
-
-    return prompt

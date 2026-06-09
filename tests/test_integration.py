@@ -5,12 +5,12 @@ from pathlib import Path
 import pytest
 from auto_qc.domain.rules import parse_rules_file, validate_rule_package
 from auto_qc.domain.data_loader import load_conversations, save_batches
-from auto_qc.domain.prompts import build_qc_prompt, build_attribution_prompt
+from auto_qc.domain.prompts import build_qc_prompt
 from auto_qc.framework.validator import validate_batches, validate_worker_output, validate_merge_results
 from auto_qc.framework.worker import extract_json
 from auto_qc.framework.coordinator import Coordinator
 from auto_qc.framework.progress import create_progress, has_unfinished
-from auto_qc.framework.cross_validator import stratified_sample, compare_results
+from auto_qc.framework.cross_validator import fixed_sample, compare_results
 
 
 class TestEndToEndDataPipeline:
@@ -118,7 +118,7 @@ class TestEndToEndDataPipeline:
             [{"id": f"v{i}", "violations": [{"rule_id": "R01"}]} for i in range(20)] +
             [{"id": f"p{i}", "violations": []} for i in range(80)]
         )
-        sample = stratified_sample(results, violation_ratio=0.1, non_violation_ratio=0.05)
+        sample = fixed_sample(results, sample_size=6)
         assert len(sample) > 0
 
         # 模拟 recheck 结果（与 original 一致）
