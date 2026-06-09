@@ -1,7 +1,6 @@
 """全流程编排器——串联 Step 0 到 Step 7"""
 import asyncio
 import json
-import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -15,7 +14,7 @@ from auto_qc.framework.validator import (
     validate_rule_package, validate_batches, validate_worker_output, validate_merge_results,
 )
 from auto_qc.framework.worker import call_llm_with_retry, extract_json, reset_token_stats, get_token_stats
-from auto_qc.framework.progress import create_progress, load_progress, save_progress, has_unfinished, reset_running_batches
+from auto_qc.framework.progress import create_progress, load_progress, save_progress, switch_phase
 from auto_qc.framework.coordinator import Coordinator
 from auto_qc.framework.cross_validator import fixed_sample, compare_results
 
@@ -224,10 +223,13 @@ async def run_qc(
     sample = fixed_sample(qc_results, sample_size=200)
     if sample:
         recheck_results = []
-        # 拆成 25 条一批，逐批让 LLM 复检（带重试）
+        # 计算 chunk 数，初始化交叉验证进度
+        chunk_count = (len(sample) + 24) // 25
+        switch_phase(work_dir, "cross_validation", chunk_count)
         for i in range(0, len(sample), 25):
+            chunk_idx = i // 25 + 1
             chunk = sample[i:i + 25]
-            chunk_batch = Batch(batch_id=999, conversations=[
+            chunk_batch = Batch(batch_id=chunk_idx, conversations=[
                 Conversation(id=s["id"], time=s.get("time", ""),
                              intent=s.get("intent", ""),
                              conversation=conv_text_map.get(s["id"], ""))
@@ -243,9 +245,17 @@ async def run_qc(
                     break
                 except Exception as e:
                     if attempt >= 2:
-                        print(f"  交叉验证抽样批次 {i//25+1} 失败: {e}")
+                        print(f"  交叉验证抽样批次 {chunk_idx} 失败: {e}")
                         break
-                    print(f"  交叉验证抽样批次 {i//25+1} 第 {attempt+1} 次重试: {e}")
+                    print(f"  交叉验证抽样批次 {chunk_idx} 第 {attempt+1} 次重试: {e}")
+
+            # update cross-validation progress
+            progress = load_progress(work_dir)
+            progress.batch_status[str(chunk_idx)] = "done" if recheck_output else "failed"
+            progress.completed_batches = sum(
+                1 for s in progress.batch_status.values() if s in ("done", "failed")
+            )
+            save_progress(work_dir, progress)
 
             if recheck_output is None:
                 continue
@@ -282,7 +292,7 @@ async def run_qc(
         if attr_batches:
             attr_rule_ids = ["A01", "A02", "A03", "A04", "A05", "A06"]
             attr_coordinator = Coordinator(work_dir)
-            create_progress(work_dir, len(attr_batches), phase="attribution")
+            switch_phase(work_dir, "attribution", len(attr_batches))
 
             attr_results = await _dispatch_phase(
                 attr_batches, attr_rule_ids,
@@ -302,7 +312,7 @@ async def run_qc(
     validate_merge_results(qc_results, total_ids)
     stats = _compute_stats(qc_results, rule_package)
 
-    write_report(output_path, qc_results, attr_data, stats)
+    write_report(output_path, qc_results, stats)
     if verify_report_exists(output_path):
         print(f"  [OK] 报告已生成: {output_path}")
     else:

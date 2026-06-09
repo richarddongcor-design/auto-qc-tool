@@ -10,13 +10,12 @@ def test_write_basic_report():
                          "evidence": "xxx", "suggestion": "yyy"}]},
         {"id": "2", "time": "2024-01-02", "intent": "B", "violations": []},
     ]
-    attr = {}
     stats = {"total": 2, "pass": 1, "violation_rate": "50.0%",
              "rules_hit": {"R01": 1}, "rule_names": {"R01": "测试规则"}}
 
     with tempfile.TemporaryDirectory() as tmpdir:
         output = str(Path(tmpdir) / "报告.xlsx")
-        write_report(output, qc_results, attr, stats)
+        write_report(output, qc_results, stats)
         assert verify_report_exists(output)
 
 

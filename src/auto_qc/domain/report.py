@@ -1,6 +1,5 @@
 """质检报告 Excel 生成"""
 from pathlib import Path
-from typing import Optional
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 
@@ -23,10 +22,9 @@ def _style_header(cell):
 def write_report(
     output_path: str,
     qc_results: list[dict],
-    attribution_results: dict,
     stats: dict,
 ) -> None:
-    """生成 3-Sheet 质检报告 Excel。"""
+    """生成 2-Sheet 质检报告 Excel。"""
     wb = openpyxl.Workbook()
 
     # Sheet 1: 合规检测
@@ -62,26 +60,7 @@ def write_report(
                     ws_qc.cell(row_num, 6).fill = SEVERITY_FILLS[severity]
                 row_num += 1
 
-    # Sheet 2: 归因分析
-    ws_attr = wb.create_sheet("归因分析")
-    ws_attr.sheet_properties.tabColor = "6BCB77"
-
-    attr_headers = ["意向结果", "归因类别", "占比", "数量", "典型案例", "改进建议"]
-    for col, h in enumerate(attr_headers, 1):
-        _style_header(ws_attr.cell(1, col, h))
-
-    row_num = 2
-    for intent, categories in attribution_results.items():
-        for cat in categories:
-            ws_attr.cell(row_num, 1, intent)
-            ws_attr.cell(row_num, 2, cat.get("category", ""))
-            ws_attr.cell(row_num, 3, f"{cat.get('ratio', 0) * 100:.1f}%")
-            ws_attr.cell(row_num, 4, cat.get("count", 0))
-            ws_attr.cell(row_num, 5, "\n".join(cat.get("examples", [])[:3]))
-            ws_attr.cell(row_num, 6, cat.get("suggestion", ""))
-            row_num += 1
-
-    # Sheet 3: 统计概览
+    # Sheet 2: 统计概览
     ws_stats = wb.create_sheet("统计概览")
     ws_stats.sheet_properties.tabColor = "FFD93D"
 
