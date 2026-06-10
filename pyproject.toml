@@ -1,7 +1,7 @@
 [project]
 name = "auto-qc"
 version = "0.0.1"
-description = "外呼通话文本质检 CLI"
+description = "auto-qc - 外呼通话文本质检工具"
 requires-python = ">=3.13"
 dependencies = [
     "openpyxl==3.1.5",
