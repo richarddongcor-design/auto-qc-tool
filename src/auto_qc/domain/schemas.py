@@ -69,8 +69,8 @@ class Rule:
 @dataclass
 class RuleSet:
     """一个规则集：命名的规则集合"""
-    name: str               # "auto-pi"，用于 CLI 引用
-    display_name: str       # "人文角度"，用于报表表头
+    name: str               # 规则集标识符（如 "auto-pi"）
+    display_name: str       # 用户可读标签（如 "人文角度"）
     description: str = ""   # 规则集说明
     rules: list[Rule] = field(default_factory=list)
 
