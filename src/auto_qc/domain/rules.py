@@ -272,6 +272,6 @@ def validate_rule_sets(rule_sets: list[RuleSet]) -> list[str]:
                 errors.append(f"{r.rule_id}: 规则描述为空")
             if not r.detection_logic:
                 errors.append(f"{r.rule_id}: 检测逻辑为空")
-            if r.severity not in ("高", "中", "低"):
+            if r.severity and r.severity not in ("高", "中", "低"):
                 errors.append(f"{r.rule_id}: severity 不合法 ({r.severity})")
     return errors
