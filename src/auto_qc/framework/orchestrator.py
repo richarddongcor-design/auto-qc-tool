@@ -3,7 +3,7 @@ import asyncio
 import json
 from pathlib import Path
 
-from auto_qc.domain.rules import load_rule_sets
+from auto_qc.domain.rules import load_rule_sets, validate_rule_sets
 from auto_qc.domain.data_loader import load_conversations, save_batches
 from auto_qc.domain.prompts import build_single_rule_prompt
 from auto_qc.domain.report import write_report, verify_report_exists
@@ -49,6 +49,10 @@ async def run_qc(
             rule_name_map[r.rule_id] = r.name
     print(f"  [OK] 加载 {len(rule_sets)} 个规则集, {len(all_rules)} 条规则")
 
+    errors = validate_rule_sets(rule_sets)
+    if errors:
+        raise ValueError(f"规则集校验失败:\n" + "\n".join(f"  - {e}" for e in errors))
+
     # ─── Step 3: 数据加载 + 批次拆分 ───
     print("[Step 3] 数据加载 + 批次拆分...")
     batches = load_conversations(data_path, batch_size=25)
@@ -92,15 +96,12 @@ async def run_qc(
                         coordinator.mark_done(batch.batch_id)
                         return data["results"]
                     except Exception as e:
-                        retries = coordinator.increment_retry(batch.batch_id)
-                        if retries >= 3:
-                            coordinator.mark_failed(batch.batch_id)
-                            print(f"  {rule.rule_id} 批次 {batch.batch_id} 失败: {e}")
-                            return [{"id": cid, "violates": False, "evidence": "", "reasoning": ""}
-                                    for cid in batch_conv_ids[batch.batch_id]]
                         if attempt < 2:
                             print(f"  {rule.rule_id} 批次 {batch.batch_id} 第 {attempt+1} 次重试: {e}")
-            return []
+                        else:
+                            print(f"  {rule.rule_id} 批次 {batch.batch_id} 失败（重试耗尽）: {e}")
+                            return [{"id": cid, "violates": False, "evidence": "", "reasoning": ""}
+                                    for cid in batch_conv_ids[batch.batch_id]]
 
         tasks = [_check_batch(b) for b in batches]
         all_batch_results = await asyncio.gather(*tasks)
@@ -121,6 +122,8 @@ async def run_qc(
         per_rule_results[rule.rule_id] = all_results_list[i]
 
     wide_rows = merge_to_wide_rows(per_rule_results, all_convs, rule_name_map)
+    if len(wide_rows) != total_ids:
+        raise RuntimeError(f"合并结果数 {len(wide_rows)} 与预期 {total_ids} 不匹配")
     print(f"  [OK] 逐规则打标完成: {len(all_rules)} 条规则 × {len(batches)} 批 = {len(all_rules) * len(batches)} 次调用")
 
     # ─── Step 5: 统计计算 ───
@@ -158,8 +161,8 @@ async def run_qc(
 def _compute_stats_v2(wide_rows: list[dict], rule_sets: list, rule_name_map: dict) -> dict:
     """v2.0 统计概览计算。"""
     total = len(wide_rows)
-    violation_rows = [r for r in wide_rows if r["summary"]]
-    pass_rows = [r for r in wide_rows if not r["summary"]]
+    violation_rows = [r for r in wide_rows if any(rr.get("result") == "违规" for rr in r["rules"].values())]
+    pass_rows = [r for r in wide_rows if r not in violation_rows]
 
     # 规则集统计
     rule_set_stats = {}

@@ -253,3 +253,25 @@ def load_rule_sets(
         ))
 
     return result
+
+
+def validate_rule_sets(rule_sets: list[RuleSet]) -> list[str]:
+    """校验加载后的规则集，返回错误列表。"""
+    errors = []
+    seen_ids = set()
+    for rs in rule_sets:
+        if not rs.rules:
+            errors.append(f"规则集 '{rs.name}' 为空")
+        for r in rs.rules:
+            if r.rule_id in seen_ids:
+                errors.append(f"规则 ID 重复: {r.rule_id}")
+            seen_ids.add(r.rule_id)
+            if not r.name:
+                errors.append(f"{r.rule_id}: 规则名称为空")
+            if not r.description:
+                errors.append(f"{r.rule_id}: 规则描述为空")
+            if not r.detection_logic:
+                errors.append(f"{r.rule_id}: 检测逻辑为空")
+            if r.severity not in ("高", "中", "低"):
+                errors.append(f"{r.rule_id}: severity 不合法 ({r.severity})")
+    return errors
