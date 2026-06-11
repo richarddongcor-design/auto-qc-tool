@@ -84,28 +84,70 @@ def test_validate_missing_fields():
     assert len(errors) == 3  # name empty + description empty + detection_logic empty
 
 
-def test_load_rule_sets_by_name():
+def test_load_rule_sets_by_name(tmp_path):
     """按名称加载规则集，ID 自动重编码。"""
     from auto_qc.domain.rules import load_rule_sets
-    rule_sets = load_rule_sets(["auto-pi"])
+    import json
+    # Create a test JSON file
+    rules_dir = str(tmp_path)
+    rule_file = tmp_path / "test-set.json"
+    rule_file.write_text(json.dumps({
+        "name": "test-set",
+        "display_name": "测试规则集",
+        "rules": [
+            {"rule_id": "R01", "name": "测试规则", "severity": "高",
+             "description": "测试描述", "detection_logic": "测试逻辑", "examples": []},
+        ],
+    }, ensure_ascii=False), encoding="utf-8")
+
+    rule_sets = load_rule_sets(["test-set"], rules_dir=rules_dir)
     assert len(rule_sets) == 1
     rs = rule_sets[0]
-    assert rs.name == "auto-pi"
-    assert len(rs.rules) >= 1
-    # ID 应已被重编码
-    assert rs.rules[0].rule_id.startswith("auto-pi_")
+    assert rs.name == "test-set"
+    assert len(rs.rules) == 1
+    assert rs.rules[0].rule_id == "test-set_R01"
+    # Also verify field values
+    assert rs.rules[0].severity == "高"
+    assert rs.rules[0].description == "测试描述"
+    assert rs.rules[0].detection_logic == "测试逻辑"
 
 
-def test_load_rule_sets_multiple():
+def test_load_rule_sets_multiple(tmp_path):
     """加载多个规则集，ID 应无冲突。"""
     from auto_qc.domain.rules import load_rule_sets
-    rule_sets = load_rule_sets(["auto-pi", "project-standards"])
+    import json
+    rules_dir = str(tmp_path)
+
+    set1 = tmp_path / "set-a.json"
+    set1.write_text(json.dumps({
+        "name": "set-a",
+        "display_name": "规则集A",
+        "rules": [
+            {"rule_id": "R01", "name": "规则A1", "severity": "高",
+             "description": "描述A1", "detection_logic": "逻辑A1", "examples": []},
+        ],
+    }, ensure_ascii=False), encoding="utf-8")
+
+    set2 = tmp_path / "set-b.json"
+    set2.write_text(json.dumps({
+        "name": "set-b",
+        "display_name": "规则集B",
+        "rules": [
+            {"rule_id": "R01", "name": "规则B1", "severity": "中",
+             "description": "描述B1", "detection_logic": "逻辑B1", "examples": []},
+        ],
+    }, ensure_ascii=False), encoding="utf-8")
+
+    rule_sets = load_rule_sets(["set-a", "set-b"], rules_dir=rules_dir)
     assert len(rule_sets) == 2
     ids = []
     for rs in rule_sets:
         for r in rs.rules:
             ids.append(r.rule_id)
     assert len(ids) == len(set(ids)), "跨规则集 ID 应无重复"
+    # Verify severity normalization
+    assert rule_sets[0].rules[0].severity == "高"
+    assert rule_sets[1].rules[0].severity == "中"
 
 
 def test_load_rule_sets_not_found():

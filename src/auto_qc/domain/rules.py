@@ -233,10 +233,12 @@ def load_rule_sets(
         rules = []
         for r in data.get("rules", []):
             original_id = r.get("rule_id", "")
+            severity = r.get("severity", "")
+            severity = _SEVERITY_MAP.get(severity, severity)
             rule = Rule(
                 rule_id=f"{name}_{original_id}",  # 重编码
                 name=r.get("name", ""),
-                severity=r.get("severity", ""),
+                severity=severity,
                 description=r.get("description", ""),
                 detection_logic=r.get("detection_logic", ""),
                 examples=r.get("examples", []),
