@@ -1,0 +1,167 @@
+{
+  "name": "intention-recruit",
+  "display_name": "意向人选质检",
+  "description": "意向人选项目：候选人沟通质检规则，覆盖通话效率、问答质量、用户体验、应变能力四大维度",
+  "rules": [
+    {
+      "rule_id": "R01",
+      "name": "无效对话",
+      "severity": "高",
+      "description": "对话未推进任一业务流程节点，如使用陈述句结束",
+      "detection_logic": "检查整段对话是否未完成任何有效推进（无信息获取、无意向确认、无推荐动作）",
+      "examples": []
+    },
+    {
+      "rule_id": "R02",
+      "name": "关键信息传递缺失",
+      "severity": "高",
+      "description": "候选人明确提问后，AI的回答未包含问题核心信息。如问“薪资多少”，答“薪资是竞争力的”",
+      "detection_logic": "检测候选人提问核心信息（薪资、地点、岗位职责等）后，AI是否直接回答而非回避或模糊回应",
+      "examples": ["候选人: 薪资多少 | AI: 薪资是竞争力的"]
+    },
+    {
+      "rule_id": "R03",
+      "name": "流程缺失/跳过",
+      "severity": "高",
+      "description": "遗漏必须的业务步骤，如未确认求职意向直接介绍岗位，未获取同意就表示会推荐",
+      "detection_logic": "检查AI是否跳过了必要的业务流程节点，如直接推荐未经确认意向",
+      "examples": ["AI: 我帮你推荐这个岗位 | 候选人: 我还没说要考虑"]
+    },
+    {
+      "rule_id": "R04",
+      "name": "流程重复/过多",
+      "severity": "中",
+      "description": "同一流程节点重复执行，如多次确认求职意向、反复介绍同一信息",
+      "detection_logic": "检测AI是否在同一段对话中重复执行相同流程节点超过2次",
+      "examples": []
+    },
+    {
+      "rule_id": "R05",
+      "name": "答非所问-关键词理解错误",
+      "severity": "高",
+      "description": "AI误解了候选人的问题核心词，如将“五险一金比例”理解为“是否有五险一金”",
+      "detection_logic": "检查AI是否错误理解了候选人提问中的关键词，导致回答偏离真实问题",
+      "examples": ["候选人: 五险一金比例是多少 | AI: 我们有五险一金"]
+    },
+    {
+      "rule_id": "R06",
+      "name": "答非所问-背景噪音干扰",
+      "severity": "中",
+      "description": "因候选人环境噪音导致ASR识别错误，进而AI回答错误",
+      "detection_logic": "检测对话中是否因ASR识别明显错误（如乱码、不连贯文本）导致AI做出不合理回应",
+      "examples": []
+    },
+    {
+      "rule_id": "R07",
+      "name": "创造新话题",
+      "severity": "中",
+      "description": "AI主动引入与当前流程无关的话题，如突然询问“您对行业趋势怎么看”",
+      "detection_logic": "检查AI是否在正常流程中主动引入了与招聘无关的新话题",
+      "examples": ["AI: 您对行业趋势怎么看 | 候选人: 额，我就想找个工作"]
+    },
+    {
+      "rule_id": "R08",
+      "name": "杜撰/胡说八道",
+      "severity": "高",
+      "description": "AI编造不存在的信息：虚构企业福利、编造岗位职责、提供错误联系方式",
+      "detection_logic": "检测AI是否输出了无法核实或明显虚假的企业/岗位信息",
+      "examples": ["AI: 这家公司提供免费三餐和健身房 | 实际该企业无此福利"]
+    },
+    {
+      "rule_id": "R09",
+      "name": "不挂机",
+      "severity": "高",
+      "description": "对话已自然结束（双方道别），但AI未终止对话，等待下一轮输入",
+      "detection_logic": "检测对话末尾双方已道别后，AI是否仍在继续输出或等待输入",
+      "examples": ["候选人: 好的谢谢再见 | AI: 再见！| AI: 您还有其他问题吗"]
+    },
+    {
+      "rule_id": "R10",
+      "name": "过度承诺",
+      "severity": "高",
+      "description": "AI做出无法保证的业务承诺，如“肯定能安排面试”“保证薪资不低于XX”",
+      "detection_logic": "检测AI是否使用了绝对化承诺措辞（肯定、保证、一定等）",
+      "examples": ["AI: 肯定能安排面试", "AI: 保证薪资不低于8000"]
+    },
+    {
+      "rule_id": "R11",
+      "name": "节点顺序错误",
+      "severity": "中",
+      "description": "如先要简历再介绍岗位、未答疑就直接推动推荐、开场就问“可以推荐吗”",
+      "detection_logic": "检查业务流程节点的执行顺序是否符合规范",
+      "examples": ["AI: 我先帮您推荐好吗 | 候选人: 我还不知道这个岗位是做什么的"]
+    },
+    {
+      "rule_id": "R12",
+      "name": "信息传递错误",
+      "severity": "高",
+      "description": "混淆年薪/月薪、说错公司名称、讲错工作地点",
+      "detection_logic": "检测AI是否传递了与企业/岗位事实不符的信息",
+      "examples": ["AI: 月薪15K | 实际该岗位是年薪15万"]
+    },
+    {
+      "rule_id": "R13",
+      "name": "信息遗漏",
+      "severity": "中",
+      "description": "未提及岗位的核心要求、未说明工作地点、未介绍企业基本信息",
+      "detection_logic": "检查AI是否遗漏了候选人有理由获知的关键信息",
+      "examples": []
+    },
+    {
+      "rule_id": "R14",
+      "name": "专业术语不当",
+      "severity": "低",
+      "description": "使用候选人可能不懂的黑话/内部术语，或解释过于简单化显得不专业",
+      "detection_logic": "检测AI是否使用了非通用行业术语而未做解释，或对专业问题过度简化",
+      "examples": ["AI: 这个岗位的HC是3个 | 候选人: HC是什么意思"]
+    },
+    {
+      "rule_id": "R15",
+      "name": "压迫感强/强行推进",
+      "severity": "高",
+      "description": "在候选人犹豫时连续追问“先把您简历推荐给企业可以吗”，或拒绝后仍试图挽回超过2次",
+      "detection_logic": "检测候选人明确拒绝或犹豫后，AI是否连续施压超过2次",
+      "examples": ["候选人: 我再考虑一下 | AI: 您先推荐试试 | 候选人: 不用了 | AI: 这个岗位真的很适合您"]
+    },
+    {
+      "rule_id": "R16",
+      "name": "语气衔接词不自然",
+      "severity": "低",
+      "description": "过多使用某个语气助词，或使用“哦”等词导致语气与前后文不协调",
+      "detection_logic": "检测AI是否过度使用语气词（哦、嗯、啊、啦等）造成不专业的听感",
+      "examples": ["AI: 哦那你再考虑一下吧"]
+    },
+    {
+      "rule_id": "R17",
+      "name": "话术冗余/重复",
+      "severity": "低",
+      "description": "同一信息用不同方式反复说，或使用啰嗦的长句而非简洁表达",
+      "detection_logic": "检测AI是否对同一信息进行了多次冗余重复",
+      "examples": []
+    },
+    {
+      "rule_id": "R18",
+      "name": "对意外问题回答不合理",
+      "severity": "中",
+      "description": "对未预设的问题（如“你们怎么有我的电话”）回答生硬或逃避",
+      "detection_logic": "检测AI对候选人提出的非预设问题是否给出了合理回应",
+      "examples": ["候选人: 你们怎么有我的电话 | AI: 请先听我介绍一下"]
+    },
+    {
+      "rule_id": "R19",
+      "name": "未将偏离的话题自然拉回",
+      "severity": "中",
+      "description": "候选人聊到无关话题时，AI跟随讨论而非引导回业务流程",
+      "detection_logic": "检测候选人离题时AI是否跟随讨论忘记引导回正题",
+      "examples": ["候选人: 最近天气真热 | AI: 是啊，今年确实热 | 然后继续聊天气"]
+    },
+    {
+      "rule_id": "R20",
+      "name": "未能理解人选的关注点",
+      "severity": "中",
+      "description": "候选人反复询问某一点（如加班），但AI未针对性解答，仍按流程推进",
+      "detection_logic": "检测候选人重复同一问题时AI是否持续回避或未针对性回答",
+      "examples": ["候选人: 加班多吗 | AI: 我们福利很好 | 候选人: 我问加班多不多 | AI: 我们有五险一金"]
+    }
+  ]
+}
