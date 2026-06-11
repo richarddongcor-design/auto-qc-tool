@@ -149,7 +149,13 @@ def validate_single_rule_output(
             f"rule_id 不匹配: 期望 {expected_rule_id}，实际 {actual_rule_id}"
         )
 
-    results = data.get("results", [])
+    batch_id = data.get("batch_id")
+    if not isinstance(batch_id, int):
+        raise ValidationError("batch_id 字段缺失或不是整数")
+
+    results = data.get("results")
+    if not isinstance(results, list):
+        raise ValidationError("results 字段缺失或不是数组")
     if len(results) != batch_size:
         raise ValidationError(
             f"结果数量不匹配: 期望 {batch_size} 条，实际 {len(results)} 条"
