@@ -88,9 +88,19 @@ async def start_pi(
 
 def _read_pi_log(save_dir: Path, max_lines: int = 100) -> list[str]:
     """读取 PI 运行日志的最新 max_lines 行。"""
+    # PI 在 save_dir 下会按 run_id 创建子目录
+    subdirs = sorted([d for d in save_dir.iterdir() if d.is_dir() and d.name[:4].isdigit()], reverse=True)
+    if subdirs:
+        log_file = subdirs[0] / "logs" / "harness.log"
+        if log_file.exists():
+            try:
+                lines = log_file.read_text(encoding="utf-8").splitlines()
+                return lines[-max_lines:]
+            except Exception:
+                pass
+    # fallback: 直接找 logs/harness.log
     log_file = save_dir / "logs" / "harness.log"
     if not log_file.exists():
-        # 也尝试看有没有 run.log（兼容 QC 格式）
         log_file = save_dir / "run.log"
     if not log_file.exists():
         return []

@@ -28,7 +28,7 @@
     </div>
     <div class="text-xs text-gray-400 mb-3">处理中，查看实时日志：</div>
     <div hx-get="/qc/logs/{{ task_id }}" hx-trigger="every 2s" hx-swap="outerHTML">
-      <div class="bg-gray-900 rounded-lg p-4 font-mono text-xs max-h-80 overflow-y-auto" style="font-family: 'Cascadia Code', 'Fira Code', monospace;">
+      <div class="bg-gray-900 rounded-lg p-4 font-mono text-xs max-h-[500px] overflow-y-auto" style="font-family: 'Cascadia Code', 'Fira Code', monospace;">
         <div class="text-gray-500 italic">加载中...</div>
       </div>
     </div>
@@ -43,7 +43,7 @@
     </div>
     <div class="text-sm text-red-500 mb-3">{{ task.error }}</div>
     <div hx-get="/qc/logs/{{ task_id }}" hx-trigger="load" hx-swap="innerHTML">
-      <div class="bg-gray-900 rounded-lg p-4 font-mono text-xs max-h-80 overflow-y-auto" style="font-family: 'Cascadia Code', 'Fira Code', monospace;">
+      <div class="bg-gray-900 rounded-lg p-4 font-mono text-xs max-h-[500px] overflow-y-auto" style="font-family: 'Cascadia Code', 'Fira Code', monospace;">
         <div class="text-gray-500 italic">加载日志...</div>
       </div>
     </div>
