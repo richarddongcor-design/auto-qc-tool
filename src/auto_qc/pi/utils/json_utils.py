@@ -68,6 +68,14 @@ def extract_json_from_text(text: str) -> Any:
                 except json.JSONDecodeError:
                     pass
 
+    # 最后尝试 json_repair 库
+    try:
+        from json_repair import repair_json
+        repaired = repair_json(text)
+        return json.loads(repaired)
+    except Exception:
+        pass
+
     preview = text[:500] + ("..." if len(text) > 500 else "")
     raise ValueError(f"无法从输出中提取合法 JSON:\n{preview}")
 
@@ -108,6 +116,14 @@ def heal_json(text: str) -> Any | None:
         )
         return extract_json_from_text(unquoted_keys)
     except (json.JSONDecodeError, ValueError):
+        pass
+
+    # 4. 最后尝试 json_repair 库
+    try:
+        from json_repair import repair_json
+        repaired = repair_json(text)
+        return extract_json_from_text(repaired)
+    except Exception:
         pass
 
     return None
