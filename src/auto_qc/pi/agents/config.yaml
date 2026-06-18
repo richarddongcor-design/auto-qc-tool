@@ -1,0 +1,15 @@
+data:
+  input_path: "data/input.xlsx"
+  chunk_size: 0                   # 0 = 自动计算
+  domain: recruitment             # 切换领域只需改这一行
+
+llm:
+  # API 配置优先从 .env 文件读取（LLM_API_KEY、LLM_BASE_URL、LLM_MODEL）
+  # 如需临时覆盖 .env 中的值，在此填写即可（优先级高于 .env）
+  api_key: ""
+  base_url: ""
+  model: ""
+  max_retries: 5
+  retry_delay: 15
+  timeout: 600
+  concurrency: 50
