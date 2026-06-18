@@ -1,7 +1,9 @@
 """质检页面路由。"""
+import io
 import json
 import uuid
 import asyncio
+import sys
 from pathlib import Path
 
 from fastapi import APIRouter, Request, UploadFile, Form
@@ -13,6 +15,38 @@ router = APIRouter()
 
 # 运行中的任务状态（内存，单用户场景够用）
 _running_tasks: dict = {}
+
+
+def _capture_output(task_id: str, save_dir: Path):
+    """返回一个文件句柄和 context，将任务期间的 print 输出同时写入日志文件和终端。"""
+    log_file = save_dir / "run.log"
+    fh = open(log_file, "w", encoding="utf-8")
+
+    class Tee:
+        def write(self, text):
+            if text.strip():
+                fh.write(text)
+                fh.flush()
+                sys.__stdout__.write(text)
+                sys.__stdout__.flush()
+
+        def flush(self):
+            fh.flush()
+            sys.__stdout__.flush()
+
+    return fh, Tee()
+
+
+def _read_log(save_dir: Path, max_lines: int = 100) -> list[str]:
+    """读取运行日志的最新 max_lines 行。"""
+    log_file = save_dir / "run.log"
+    if not log_file.exists():
+        return []
+    try:
+        lines = log_file.read_text(encoding="utf-8").splitlines()
+        return lines[-max_lines:]
+    except Exception:
+        return []
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -45,6 +79,9 @@ async def start_qc(
 
     async def run():
         """后台运行质检，不阻塞 HTTP 响应。"""
+        fh, tee = _capture_output(task_id, save_dir)
+        old_stdout = sys.stdout
+        sys.stdout = tee  # type: ignore
         try:
             from auto_qc.core.config import load_env_config
 
@@ -63,6 +100,10 @@ async def start_qc(
         except Exception as e:
             _running_tasks[task_id]["status"] = "failed"
             _running_tasks[task_id]["error"] = str(e)
+            print(f"错误: {e}")
+        finally:
+            sys.stdout = old_stdout
+            fh.close()
 
     asyncio.create_task(run())
 
@@ -117,6 +158,18 @@ async def qc_history(request: Request):
         request,
         "partials/qc_history.html",
         {"request": request, "runs": runs},
+    )
+
+
+@router.get("/logs/{task_id}")
+async def qc_logs(request: Request, task_id: str):
+    """返回运行日志的 HTML 片段（终端风格）。"""
+    save_dir = Path("output") / task_id
+    lines = _read_log(save_dir)
+    return templates.TemplateResponse(
+        request,
+        "partials/qc_logs.html",
+        {"request": request, "task_id": task_id, "lines": lines},
     )
 
 

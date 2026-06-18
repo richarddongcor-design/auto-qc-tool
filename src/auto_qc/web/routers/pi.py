@@ -86,6 +86,21 @@ async def start_pi(
     )
 
 
+def _read_pi_log(save_dir: Path, max_lines: int = 100) -> list[str]:
+    """读取 PI 运行日志的最新 max_lines 行。"""
+    log_file = save_dir / "logs" / "harness.log"
+    if not log_file.exists():
+        # 也尝试看有没有 run.log（兼容 QC 格式）
+        log_file = save_dir / "run.log"
+    if not log_file.exists():
+        return []
+    try:
+        lines = log_file.read_text(encoding="utf-8").splitlines()
+        return lines[-max_lines:]
+    except Exception:
+        return []
+
+
 @router.get("/progress/{task_id}")
 async def pi_progress(request: Request, task_id: str):
     """轮询问题挖掘进度。"""
@@ -117,6 +132,18 @@ async def pi_result(request: Request, task_id: str):
         request,
         "partials/pi_result.html",
         {"request": request, "summary": summary, "task_id": task_id},
+    )
+
+
+@router.get("/logs/{task_id}")
+async def pi_logs(request: Request, task_id: str):
+    """返回运行日志的 HTML 片段（终端风格）。"""
+    save_dir = Path("output") / task_id
+    lines = _read_pi_log(save_dir)
+    return templates.TemplateResponse(
+        request,
+        "partials/pi_logs.html",
+        {"request": request, "task_id": task_id, "lines": lines},
     )
 
 

@@ -1,0 +1,9 @@
+<div id="log-{{ task_id }}">
+  <div class="bg-gray-900 rounded-lg p-4 font-mono text-xs leading-relaxed max-h-80 overflow-y-auto" style="font-family: 'Cascadia Code', 'Fira Code', monospace;">
+    {% for line in lines %}
+    <div class="text-gray-300">{{ line }}</div>
+    {% else %}
+    <div class="text-gray-500 italic">等待输出...</div>
+    {% endfor %}
+  </div>
+</div>

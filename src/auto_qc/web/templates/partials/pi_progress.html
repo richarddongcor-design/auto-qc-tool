@@ -10,10 +10,12 @@
         <span class="text-sm font-medium">{{ task_id }}</span>
       </div>
     </div>
-    <div class="w-full h-1 bg-gray-100 rounded-full overflow-hidden mb-2">
-      <div class="h-full bg-amber-600 rounded-full transition-all duration-500" style="width: 0%"></div>
+    <div class="text-xs text-gray-400 mb-3">正在启动，查看实时日志：</div>
+    <div hx-get="/pi/logs/{{ task_id }}" hx-trigger="every 2s" hx-swap="outerHTML">
+      <div class="bg-gray-900 rounded-lg p-4 font-mono text-xs max-h-80 overflow-y-auto" style="font-family: 'Cascadia Code', 'Fira Code', monospace;">
+        <div class="text-gray-500 italic">等待日志...</div>
+      </div>
     </div>
-    <div class="text-xs text-gray-400">正在启动...</div>
   </div>
   {% elif task.status == "running" %}
   <div class="card p-6 mb-4">
@@ -23,10 +25,12 @@
         <span class="text-sm font-medium">{{ task_id }}</span>
       </div>
     </div>
-    <div class="w-full h-1 bg-gray-100 rounded-full overflow-hidden mb-2">
-      <div class="h-full bg-amber-600 rounded-full transition-all duration-500" style="width: {{ task.progress }}%"></div>
+    <div class="text-xs text-gray-400 mb-3">运行中，查看实时日志：</div>
+    <div hx-get="/pi/logs/{{ task_id }}" hx-trigger="every 2s" hx-swap="outerHTML">
+      <div class="bg-gray-900 rounded-lg p-4 font-mono text-xs max-h-80 overflow-y-auto" style="font-family: 'Cascadia Code', 'Fira Code', monospace;">
+        <div class="text-gray-500 italic">加载中...</div>
+      </div>
     </div>
-    <div class="text-xs text-gray-400">处理中...</div>
   </div>
   {% elif task.status == "completed" %}
   <div hx-get="/pi/result/{{ task_id }}" hx-trigger="load" hx-swap="outerHTML"></div>
@@ -36,7 +40,12 @@
       <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600">运行失败</span>
       <span class="text-sm font-medium">{{ task_id }}</span>
     </div>
-    <div class="text-sm text-red-500">{{ task.error }}</div>
+    <div class="text-sm text-red-500 mb-3">{{ task.error }}</div>
+    <div hx-get="/pi/logs/{{ task_id }}" hx-trigger="load" hx-swap="innerHTML">
+      <div class="bg-gray-900 rounded-lg p-4 font-mono text-xs max-h-80 overflow-y-auto" style="font-family: 'Cascadia Code', 'Fira Code', monospace;">
+        <div class="text-gray-500 italic">加载日志...</div>
+      </div>
+    </div>
   </div>
   {% endif %}
 </div>
