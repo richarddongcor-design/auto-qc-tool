@@ -1,29 +1,36 @@
 {% extends "base.html" %}
 {% block title %}配置 — Auto-QC{% endblock %}
 {% block content %}
+{% if saved %}
+<div class="mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-700 flex items-center gap-2">
+  <span>✓</span> 配置已保存
+</div>
+{% endif %}
 <!-- LLM 配置 -->
 <div class="card p-6 mb-6">
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex items-center justify-between mb-7">
     <span class="text-sm font-medium">LLM 配置</span>
     <button type="submit" form="llm-form" class="btn-primary">保存</button>
   </div>
-  <form id="llm-form" method="post" action="/config/save-llm" class="grid grid-cols-2 gap-5">
-    <div>
-      <label for="base_url">接口地址</label>
-      <input id="base_url" name="base_url" value="{{ config.LLM_BASE_URL }}">
-    </div>
-    <div>
-      <label for="api_key">API Key</label>
-      <input id="api_key" name="api_key" type="password" value="" placeholder="输入新 Key 以更新（留空不修改）">
-    </div>
-    <div>
-      <label for="model">模型</label>
-      <input id="model" name="model" value="{{ config.LLM_MODEL }}">
-    </div>
-    <div>
-      <label>当前 Key 状态</label>
-      <div class="px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm {{ 'text-emerald-600' if config.LLM_API_KEY != '****' else 'text-gray-400' }}">
-        {% if config.LLM_API_KEY != '****' %}已设置{% else %}未配置{% endif %}
+  <form id="llm-form" method="post" action="/config/save-llm" class="space-y-5">
+    <div class="grid grid-cols-2 gap-x-8 gap-y-6">
+      <div class="space-y-2">
+        <label for="base_url" class="text-xs font-medium text-gray-500">接口地址</label>
+        <input id="base_url" name="base_url" value="{{ config.LLM_BASE_URL }}" class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-200 transition-all">
+      </div>
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label for="api_key" class="text-xs font-medium text-gray-500">API Key</label>
+          <span class="flex items-center gap-1.5 text-xs {{ 'text-emerald-600' if config.LLM_API_KEY != '****' else 'text-gray-400' }}">
+            <span class="w-1.5 h-1.5 rounded-full {{ 'bg-emerald-500' if config.LLM_API_KEY != '****' else 'bg-gray-300' }}"></span>
+            {% if config.LLM_API_KEY != '****' %}已设置{% else %}未配置{% endif %}
+          </span>
+        </div>
+        <input id="api_key" name="api_key" type="password" value="" placeholder="输入新 Key 以更新" class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-200 transition-all">
+      </div>
+      <div class="space-y-2">
+        <label for="model" class="text-xs font-medium text-gray-500">模型</label>
+        <input id="model" name="model" value="{{ config.LLM_MODEL }}" placeholder="deepseek-v4-flash" class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-200 transition-all placeholder-gray-400">
       </div>
     </div>
   </form>

@@ -14,7 +14,12 @@ async def config_page(request: Request):
     return templates.TemplateResponse(
         request,
         "config.html",
-        {"request": request, "active_tab": "config", "config": cfg},
+        {
+            "request": request,
+            "active_tab": "config",
+            "config": cfg,
+            "saved": request.query_params.get("saved") == "1",
+        },
     )
 
 
@@ -31,4 +36,4 @@ async def save_llm_config(request: Request):
         api_key=api_key,
         model=form.get("model", ""),
     )
-    return RedirectResponse(url="/config", status_code=303)
+    return RedirectResponse(url="/config?saved=1", status_code=303)
