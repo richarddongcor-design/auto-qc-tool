@@ -1,27 +1,41 @@
 {% extends "base.html" %}
 {% block title %}问题挖掘 — Auto-QC{% endblock %}
 {% block content %}
-<!-- 上传+配置区 -->
+
+<!-- 第 1 行：领域选择 -->
 <div class="card p-6 mb-4">
-  <form hx-post="/pi/start" hx-target="#result-area" hx-swap="innerHTML"
-        enctype="multipart/form-data" class="space-y-5">
-    <div class="flex items-start gap-6">
-      <div class="flex-1">
-        <label>数据文件</label>
-        <div id="pi-dropzone"
-             class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-amber-300 cursor-pointer transition-colors"
-             onclick="document.getElementById('pi-file-input').click()">
-          <div id="pi-dropzone-text" class="text-gray-400 text-sm mb-1">点击上传或拖拽 Excel 文件</div>
-          <div id="pi-dropzone-hint" class="text-xs text-gray-300">.xlsx</div>
-        </div>
-        <input id="pi-file-input" type="file" name="file" accept=".xlsx" class="hidden" required
-               onchange="piHandleFile(this)">
+  <div class="flex items-center gap-4">
+    <label class="text-sm font-medium text-gray-500 whitespace-nowrap">领域</label>
+    <select name="domain" form="pi-form" class="max-w-xs">
+      <option value="recruitment">招聘外呼</option>
+    </select>
+  </div>
+</div>
+
+<!-- 第 2 行：文件选择 + 开始按钮 -->
+<div class="card p-6 mb-4">
+  <form id="pi-form" hx-post="/pi/start" hx-target="#result-area" hx-swap="innerHTML"
+        enctype="multipart/form-data" class="flex items-center gap-6">
+    <div class="flex-1">
+      <label class="text-sm font-medium text-gray-500 block mb-2">待挖掘文件</label>
+      <div id="pi-dropzone"
+           class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-amber-300 cursor-pointer transition-colors"
+           onclick="document.getElementById('pi-file-input').click()">
+        <div id="pi-dropzone-text" class="text-gray-400 text-sm mb-1">点击上传或拖拽 Excel 文件</div>
+        <div id="pi-dropzone-hint" class="text-xs text-gray-300">.xlsx</div>
       </div>
+      <input id="pi-file-input" type="file" name="file" accept=".xlsx" class="hidden" required
+             onchange="piHandleFile(this)">
+    </div>
+    <button type="submit" class="px-14 py-5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white text-lg font-bold rounded-2xl transition-all cursor-pointer shadow-md hover:shadow-lg active:scale-[0.97] border-2 border-amber-400 self-end shrink-0 tracking-wider">开始挖掘</button>
+  </form>
+</div>
+
 <script>
 function piHandleFile(input) {
   if (input.files && input.files[0]) {
-    document.getElementById('pi-dropzone-text').textContent = '已选择: ' + input.files[0].name;
-    document.getElementById('pi-dropzone-hint').textContent = '✓ 文件就绪';
+    document.getElementById('pi-dropzone-text').textContent = input.files[0].name;
+    document.getElementById('pi-dropzone-hint').textContent = '✓ 已就绪';
     document.getElementById('pi-dropzone').className = 'border-2 border-amber-300 bg-amber-50/30 rounded-xl p-6 text-center cursor-pointer transition-colors';
   }
 }
@@ -33,25 +47,11 @@ function piHandleFile(input) {
   dz.addEventListener('drop', function(e) { e.preventDefault(); var f = e.dataTransfer.files[0]; if (f) { document.getElementById('pi-file-input').files = e.dataTransfer.files; piHandleFile(document.getElementById('pi-file-input')); } });
 })();
 </script>
-      <div class="flex-1 space-y-3">
-        <div>
-          <label>领域</label>
-          <select name="domain">
-            <option value="recruitment">招聘外呼</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="flex justify-end pt-4 border-t border-gray-50">
-      <button type="submit" class="btn-primary px-8 font-semibold tracking-wide">开始挖掘</button>
-    </div>
-  </form>
-</div>
 
-<!-- 结果区域（HTMX 填充） -->
+<!-- 第 3 行：运行状态 -->
 <div id="result-area"></div>
 
-<!-- 历史记录 -->
+<!-- 第 4 行：历史记录 -->
 <div class="card p-6">
   <div class="flex items-center justify-between mb-4">
     <span class="text-sm font-medium">历史记录</span>
