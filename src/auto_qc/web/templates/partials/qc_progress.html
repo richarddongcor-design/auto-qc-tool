@@ -22,5 +22,6 @@
     </div>
     <div class="text-sm text-red-500">{{ task.error }}</div>
   </div>
+  <span hx-get="/qc/history" hx-target="#history-list" hx-trigger="load" hx-swap="innerHTML" class="hidden"></span>
   {% endif %}
 </div>

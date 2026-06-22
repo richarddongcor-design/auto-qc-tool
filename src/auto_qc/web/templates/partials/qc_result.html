@@ -1,14 +1,11 @@
-<div class="card p-6 mb-4">
+<div class="card p-8 mb-5">
   <div class="flex items-center justify-between mb-5">
     <div class="flex items-center gap-3">
-      <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">已完成</span>
+      <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-amber-50 text-amber-600">已完成</span>
       <span class="text-sm font-medium text-gray-900">{{ summary.data_file.split('/')[-1] or summary.data_file }}</span>
     </div>
-    <div class="flex items-center gap-3">
-      <a href="/qc/download/{{ task_id }}" class="btn-secondary text-xs px-3 py-1.5 no-underline">下载报告</a>
-    </div>
   </div>
-  <div class="grid grid-cols-4 gap-6">
+  <div class="grid grid-cols-3 gap-6 mb-6">
     <div>
       <div class="text-2xl font-semibold text-gray-900">{{ summary.total_conversations }}</div>
       <div class="text-xs text-gray-400 mt-0.5">总对话数</div>
@@ -21,9 +18,10 @@
       <div class="text-2xl font-semibold text-gray-900">{{ "%.1f"|format(summary.token_usage.total_tokens / 1000) }}K</div>
       <div class="text-xs text-gray-400 mt-0.5">总 tokens</div>
     </div>
-    <div>
-      <div class="text-2xl font-semibold text-gray-900">{{ summary.total_checks }}</div>
-      <div class="text-xs text-gray-400 mt-0.5">总检查次数</div>
-    </div>
   </div>
+  <a href="/qc/download/{{ task_id }}" class="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-xl transition-colors shadow-sm no-underline">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    下载报告 (.xlsx)
+  </a>
+  <span hx-get="/qc/history" hx-target="#history-list" hx-trigger="load" hx-swap="innerHTML" class="hidden"></span>
 </div>

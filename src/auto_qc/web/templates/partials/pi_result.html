@@ -1,38 +1,23 @@
-<div class="card p-6 mb-4">
+<div class="card p-8 mb-5">
   <div class="flex items-center justify-between mb-5">
     <div class="flex items-center gap-3">
-      <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">已完成</span>
-      <span class="text-sm font-medium text-gray-900">{{ summary.data_file }}</span>
+      <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-amber-50 text-amber-600">{{ "已完成" if summary.status == "completed" else "失败" }}</span>
+      <span class="text-sm font-medium text-gray-900">{{ summary.data_file.split('/')[-1] or summary.data_file }}</span>
     </div>
   </div>
-  <div class="grid grid-cols-3 gap-6 mb-5">
+  <div class="grid grid-cols-2 gap-6 mb-6">
     <div>
       <div class="text-2xl font-semibold text-gray-900">{{ summary.domain }}</div>
       <div class="text-xs text-gray-400 mt-0.5">领域</div>
     </div>
     <div>
-      <div class="text-2xl font-semibold text-gray-900">{{ summary.run_id[:12] if summary.run_id else "—" }}...</div>
-      <div class="text-xs text-gray-400 mt-0.5">运行 ID</div>
-    </div>
-    <div>
-      <div class="text-2xl font-semibold text-emerald-500">{{ summary.status }}</div>
-      <div class="text-xs text-gray-400 mt-0.5">状态</div>
+      <div class="text-2xl font-semibold {{ 'text-emerald-500' if summary.status == 'completed' else 'text-red-500' }}">{{ "成功" if summary.status == "completed" else "失败" }}</div>
+      <div class="text-xs text-gray-400 mt-0.5">运行状态</div>
     </div>
   </div>
-  {% if summary.results %}
-  <div class="border-t border-gray-50 pt-4">
-    <div class="text-xs font-medium text-gray-500 mb-3">各阶段结果</div>
-    <div class="space-y-2">
-      {% for key, phase in summary.results.items() %}
-      <div class="flex items-center gap-3 text-sm">
-        <span class="w-2 h-2 rounded-full {% if phase.success %}bg-emerald-400{% else %}bg-red-400{% endif %}"></span>
-        <span class="text-gray-700">{{ phase.name }}</span>
-        <span class="text-xs {% if phase.success %}text-emerald-500{% else %}text-red-500{% endif %}">
-          {{ "成功" if phase.success else "失败" }}
-        </span>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
+  <a href="/pi/download/{{ task_id }}" class="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-xl transition-colors shadow-sm no-underline">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    下载结果
+  </a>
+  <span hx-get="/pi/history" hx-target="#history-list" hx-trigger="load" hx-swap="innerHTML" class="hidden"></span>
 </div>

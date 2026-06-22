@@ -101,6 +101,17 @@ async def start_qc(
             _running_tasks[task_id]["status"] = "failed"
             _running_tasks[task_id]["error"] = str(e)
             print(f"错误: {e}")
+            # 写入 summary.json 使失败记录出现在历史中
+            try:
+                summary_data = {
+                    "data_file": str(file_path),
+                    "rule_sets": [s.strip() for s in rule_sets.split(",") if s.strip()],
+                    "status": "failed",
+                    "error": str(e),
+                }
+                (save_dir / "summary.json").write_text(json.dumps(summary_data, ensure_ascii=False, indent=2), encoding="utf-8")
+            except Exception:
+                pass
         finally:
             sys.stdout = old_stdout
             fh.close()
