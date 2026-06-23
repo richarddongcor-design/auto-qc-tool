@@ -1,7 +1,7 @@
 [project]
-name = "auto-qc"
-version = "0.0.1"
-description = "auto-qc - 外呼通话文本质检工具"
+name = "auto-qc-tool"
+version = "1.0.0"
+description = "auto-qc-tool — 外呼通话质检 + 问题挖掘平台"
 requires-python = ">=3.13"
 dependencies = [
     "openpyxl==3.1.5",
@@ -20,6 +20,7 @@ dependencies = [
 
 [project.scripts]
 auto-qc = "auto_qc.cli:main"
+auto-qc-tool = "auto_qc.cli:main"
 
 [build-system]
 requires = ["hatchling"]

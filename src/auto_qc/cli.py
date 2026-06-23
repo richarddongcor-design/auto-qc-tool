@@ -10,7 +10,7 @@ from pathlib import Path
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Auto-QC — 外呼通话质量检测 + 问题挖掘平台",
+        description="Auto-QC-Tool — 外呼通话质量检测 + 问题挖掘平台",
         prog="auto-qc",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)

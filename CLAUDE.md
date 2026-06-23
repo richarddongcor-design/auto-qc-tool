@@ -1,4 +1,4 @@
-# Auto-QC 项目文档
+# Auto-QC-Tool 项目文档
 
 质检 + 问题挖掘融合平台。Web 给人看，CLI 给 AI 调。
 

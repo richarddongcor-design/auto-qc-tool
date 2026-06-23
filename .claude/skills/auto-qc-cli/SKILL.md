@@ -1,16 +1,16 @@
 ---
 name: auto-qc-cli
-description: Use when a user asks to run quality checks (质检/QC) or problem mining (问题挖掘/PI) on conversation data via this project's CLI tool. Commands run under `uv run auto-qc`.
+description: Use when a user asks to run quality checks (质检/QC) or problem mining (问题挖掘/PI) on conversation data via this project's CLI tool. Commands run under `uv run auto-qc` or `uv run auto-qc-tool`.
 ---
 
-# Auto-QC CLI
+# Auto-QC-Tool CLI
 
 AI 对话质量检测与问题挖掘工具。Web 和 CLI 功能完全同步。
 
 ## 前置条件
 
 - 项目目录：`C:\Users\dongyi\myprojects\auto-qc`
-- 运行方式：`uv run auto-qc <subcommand> [options]`
+- 运行方式：`uv run auto-qc` 或 `uv run auto-qc-tool`
 - `.env` 文件已包含 API 配置
 
 ## 命令参考

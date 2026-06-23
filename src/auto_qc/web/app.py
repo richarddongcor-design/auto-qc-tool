@@ -7,7 +7,7 @@ from auto_qc.web.routers import qc, pi, config
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="Auto-QC", version="0.2.0")
+    app = FastAPI(title="Auto-QC-Tool", version="1.0.0")
 
     static_dir = Path(__file__).resolve().parent / "static"
     static_dir.mkdir(exist_ok=True)
