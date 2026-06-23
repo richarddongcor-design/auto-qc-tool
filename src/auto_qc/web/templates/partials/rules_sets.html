@@ -1,0 +1,17 @@
+<div class="space-y-2">
+  {% for rs in rule_sets %}
+  <div class="flex items-center justify-between px-4 py-3 rounded-lg border border-gray-100 hover:border-amber-200 hover:bg-amber-50/20 transition-all cursor-pointer"
+       onclick="document.getElementById('rule-editor').innerHTML='<div class=\'text-sm text-gray-400 py-6 text-center\'>加载中...</div>'"
+       hx-get="/config/rule-sets/{{ rs.name }}"
+       hx-target="#rule-editor"
+       hx-swap="innerHTML">
+    <div class="flex items-center gap-3 min-w-0">
+      <span class="text-sm font-medium text-gray-900">{{ rs.display_name }}</span>
+      <span class="text-xs text-gray-400">{{ rs.rule_count }} 条规则</span>
+    </div>
+    <svg class="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+  </div>
+  {% else %}
+  <div class="text-sm text-gray-400 py-6 text-center">暂无规则集</div>
+  {% endfor %}
+</div>

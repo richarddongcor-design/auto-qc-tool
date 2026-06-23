@@ -36,13 +36,16 @@
   </form>
 </div>
 
-<!-- 规则管理（占位 — Task 7 实现编辑功能） -->
-<div class="card p-6">
-  <div class="flex items-center justify-between mb-4">
+<!-- 规则管理 -->
+<div class="card p-6" x-data="{ activeSet: null }">
+  <div class="flex items-center justify-between mb-5">
     <span class="text-sm font-medium">规则管理</span>
   </div>
-  <div class="text-sm text-gray-400 py-8 text-center border-2 border-dashed border-gray-100 rounded-xl">
-    规则编辑功能将在后续版本中上线
+  <!-- 规则集列表 -->
+  <div id="rule-sets-list" hx-get="/config/rule-sets" hx-trigger="load" hx-swap="innerHTML">
+    <div class="text-sm text-gray-400 py-6 text-center">加载规则集...</div>
   </div>
+  <!-- 编辑器容器 -->
+  <div id="rule-editor" class="mt-4"></div>
 </div>
 {% endblock %}
